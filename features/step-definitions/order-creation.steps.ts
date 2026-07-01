@@ -36,7 +36,7 @@ When(
   'the CSR searches for customer {string} and applies the filter',
   async function (this: CustomWorld, customerName: string) {
     await this.customerPage.searchCustomer(customerName);
-    await this.customerPage.clickApplyFilter();
+    await this.customerPage.applyFilter();
     // Explicit fixed wait as specified in the documented test flow.
     await this.customerPage.waitForSearchResultsDelay(5);
   }
@@ -46,7 +46,7 @@ When(
   'the CSR opens customer {string} and impersonates the customer',
   async function (this: CustomWorld, customerName: string) {
     await this.customerPage.openCustomer(customerName);
-    await this.customerPage.clickImpersonateCustomer();
+    await this.customerPage.impersonateCustomer();
     // Explicit fixed wait as specified in the documented test flow.
     await this.customerPage.waitForImpersonationDelay(3);
   }

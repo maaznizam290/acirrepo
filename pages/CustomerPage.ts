@@ -1,88 +1,109 @@
-/**
- * pages/CustomerPage.ts
- * -----------------------------------------------------------------------
- * Page Object for the "Manage Customer" search/listing screen and the
- * customer detail screen, including the "Impersonate Customer" action
- * that is central to the CSR order-creation flow.
- * -----------------------------------------------------------------------
- */
-
 import { Locator, Page } from '@playwright/test';
 import { CommonActions } from '../utils/CommonActions';
 import { WaitHelper } from '../utils/WaitHelper';
 
 export class CustomerPage {
-  private readonly actions: CommonActions;
-  private readonly waitHelper: WaitHelper;
+    waitForImpersonationDelay(_arg0: number) {
+      throw new Error('Method not implemented.');
+    }
+    waitForSearchResultsDelay(_arg0: number) {
+      throw new Error('Method not implemented.');
+    }
 
-  private readonly customerSearchInput: Locator;
-  private readonly applyFilterButton: Locator;
-  private readonly customerResultLink: (name: string) => Locator;
-  private readonly impersonateCustomerButton: Locator;
+    private readonly page: Page;
+    private readonly actions: CommonActions;
+    private readonly waitHelper: WaitHelper;
 
-  constructor(page: Page) {
-    this.actions = new CommonActions(page);
-    this.waitHelper = new WaitHelper(page);
+    private readonly customerSearchInput: Locator;
+    private readonly applyFilterButton: Locator;
+    private readonly impersonateButton: Locator;
 
-    this.customerSearchInput = page
-      .getByPlaceholder(/search customer/i)
-      .or(page.locator('input[name*="customer" i], input#CustomerSearch'));
+    constructor(page: Page) {
 
-    this.applyFilterButton = page.getByRole('button', { name: /apply filter/i });
+        this.page = page;
 
-    this.customerResultLink = (name: string) =>
-      page.getByRole('link', { name, exact: false }).or(page.getByText(name, { exact: false }));
+        this.actions = new CommonActions(page);
+        this.waitHelper = new WaitHelper(page);
 
-    this.impersonateCustomerButton = page
-      .getByRole('button', { name: /impersonate customer/i })
-      .or(page.getByText(/impersonate customer/i));
-  }
+        this.customerSearchInput =
+            page.locator('#ctl00_bodyContentPlaceholder_FilteredListing_ctl02_ctl05_Value');
 
-  public async searchCustomer(name: string): Promise<void> {
-    await this.actions.fill(this.customerSearchInput, name, 'Customer search input');
-  }
+        this.applyFilterButton =
+            page.getByRole('button', { name: /apply filter/i });
 
-  public async clickApplyFilter(): Promise<void> {
-    await this.actions.click(this.applyFilterButton, '"Apply Filter" button');
-  }
+        this.impersonateButton =
+            page.getByRole('link', { name: /impersonate customer/i });
+    }
 
-  /**
-   * Waits the explicitly required fixed delay for search results to
-   * settle (see WaitHelper.waitForFixedDelay doc-comment for rationale).
-   */
-  public async waitForSearchResultsDelay(seconds: number): Promise<void> {
-    await this.waitHelper.waitForFixedDelay(
-      seconds,
-      'Allowing customer search results grid to settle'
-    );
-  }
+    private customerResult(customerName: string): Locator {
 
-  public async openCustomer(name: string): Promise<void> {
-    await this.actions.click(this.customerResultLink(name), `Customer result row: "${name}"`);
-  }
+        return this.page.getByRole('link', {
+            name: new RegExp(customerName, 'i')
+        });
+    }
 
-  public async clickImpersonateCustomer(): Promise<void> {
-    await this.actions.click(this.impersonateCustomerButton, '"Impersonate Customer" button');
-  }
+    public async searchCustomer(customerName: string): Promise<void> {
 
-  public async waitForImpersonationDelay(seconds: number): Promise<void> {
-    await this.waitHelper.waitForFixedDelay(
-      seconds,
-      'Allowing impersonation session/context switch to complete'
-    );
-  }
+        await this.waitHelper.waitForVisible(this.customerSearchInput);
 
-  /** Composed flow: search -> filter -> wait -> open -> impersonate -> wait. */
-  public async searchAndImpersonateCustomer(
-    customerName: string,
-    postSearchDelaySeconds: number,
-    postImpersonateDelaySeconds: number
-  ): Promise<void> {
-    await this.searchCustomer(customerName);
-    await this.clickApplyFilter();
-    await this.waitForSearchResultsDelay(postSearchDelaySeconds);
-    await this.openCustomer(customerName);
-    await this.clickImpersonateCustomer();
-    await this.waitForImpersonationDelay(postImpersonateDelaySeconds);
-  }
+        await this.actions.fill(
+            this.customerSearchInput,
+            customerName,
+            'Customer Name'
+        );
+    }
+
+    public async applyFilter(): Promise<void> {
+
+        await this.actions.click(
+            this.applyFilterButton,
+            'Apply Filter'
+        );
+    }
+
+    public async openCustomer(customerName: string): Promise<void> {
+
+        const customer = this.customerResult(customerName);
+
+        await this.waitHelper.waitForVisible(customer);
+
+        await this.actions.click(
+            customer,
+            customerName
+        );
+    }
+
+    public async impersonateCustomer(): Promise<void> {
+
+        await this.waitHelper.waitForVisible(
+            this.impersonateButton
+        );
+
+        await this.actions.click(
+            this.impersonateButton,
+            'Impersonate Customer'
+        );
+    }
+
+    /**
+     * Complete flow
+     */
+
+    public async searchAndImpersonateCustomer(customerName: string): Promise<void> {
+
+        await this.searchCustomer(customerName);
+
+        await this.applyFilter();
+
+        // Business requirement
+        await this.waitHelper.waitForFixedDelay(5, 'Allowing search results to load');
+
+        await this.openCustomer(customerName);
+
+        await this.impersonateCustomer();
+
+        // Business requirement
+        await this.waitHelper.waitForFixedDelay(3, 'Allowing impersonation to complete');
+    }
+
 }
