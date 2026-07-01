@@ -1,0 +1,21 @@
+{
+  "users": [
+    {
+      "role": "CSR",
+      "description": "Customer Service Representative used for impersonation flows",
+      "emailEnvVar": "QA_EMAIL",
+      "passwordEnvVar": "QA_PASSWORD"
+    }
+  ],
+  "customers": [
+    {
+      "name": "Hiba",
+      "description": "Primary test customer used for impersonation regression scenario"
+    }
+  ],
+  "products": [
+    { "name": "Apple", "defaultQuantity": 6 },
+    { "name": "Aproten", "defaultQuantity": 7 }
+  ],
+  "paymentMethods": ["Invoice", "Credit Card", "PayPal"]
+}

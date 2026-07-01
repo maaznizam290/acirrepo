@@ -1,0 +1,19 @@
+{
+  "categories": [
+    {
+      "name": "Locator / Element Not Found",
+      "matchedStatuses": ["failed"],
+      "messageRegex": ".*not visible.*|.*not found.*|.*Timeout.*waiting for selector.*"
+    },
+    {
+      "name": "Assertion Failures",
+      "matchedStatuses": ["failed"],
+      "messageRegex": ".*expect.*toBeVisible.*|.*Assertion.*"
+    },
+    {
+      "name": "Configuration Errors",
+      "matchedStatuses": ["broken"],
+      "messageRegex": ".*ConfigError.*"
+    }
+  ]
+}

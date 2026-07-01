@@ -1,0 +1,60 @@
+{
+  "name": "playwright-cucumber-enterprise-framework",
+  "version": "1.0.0",
+  "description": "Enterprise-grade Playwright + TypeScript + Cucumber BDD Automation Framework",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "pretest": "rimraf reports allure-results test-results screenshots || true",
+    "test": "cucumber-js --config config/cucumber.js",
+    "test:chrome": "cross-env BROWSER=chromium npm test",
+    "test:firefox": "cross-env BROWSER=firefox npm test",
+    "test:edge": "cross-env BROWSER=edge npm test",
+    "test:headed": "cross-env HEADLESS=false npm test",
+    "test:headless": "cross-env HEADLESS=true npm test",
+    "test:parallel": "cucumber-js --config config/cucumber.js --parallel 4",
+    "test:qa": "cross-env ENV=qa npm test",
+    "test:staging": "cross-env ENV=staging npm test",
+    "test:prod": "cross-env ENV=prod npm test",
+    "report:allure:generate": "allure generate allure-results --clean -o reports/allure-report",
+    "report:allure:open": "allure open reports/allure-report",
+    "report:allure": "npm run report:allure:generate && npm run report:allure:open",
+    "report:html:generate": "node scripts/generate-html-report.js",
+    "report:html": "npm run report:html:generate && npm run report:html:open",
+    "report:html:open": "open-cli reports/cucumber-html-report/index.html || start reports/cucumber-html-report/index.html",
+    "build": "tsc --noEmit",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.ts\""
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "dayjs": "^1.11.10",
+    "dotenv": "^16.4.5",
+    "uuid": "^9.0.1",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^10.8.0",
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^20.14.2",
+    "@types/uuid": "^9.0.8",
+    "allure-commandline": "^2.29.0",
+    "allure-cucumberjs": "^2.15.1",
+    "allure-js-commons": "^2.15.1",
+    "cross-env": "^7.0.3",
+    "cucumber-html-reporter": "^7.1.1",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
+    "multiple-cucumber-html-reporter": "^3.6.2",
+    "open-cli": "^8.0.0",
+    "prettier": "^3.3.2",
+    "rimraf": "^5.0.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets — NEVER commit real credentials
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Reports & artifacts
+reports/
+allure-results/
+allure-report/
+test-results/
+screenshots/
+videos/
+traces/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# npm
+npm-debug.log*
+package-lock.json.bak

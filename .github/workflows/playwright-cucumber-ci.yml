@@ -1,0 +1,89 @@
+name: Playwright Cucumber E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to run against'
+        required: false
+        default: 'chromium'
+        type: choice
+        options: [chromium, firefox, edge]
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'qa'
+        type: choice
+        options: [qa, staging, prod]
+
+jobs:
+  e2e-tests:
+    name: Run E2E Tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, edge]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Create .env file from secrets
+        run: |
+          cat <<EOF > .env
+          ENV=${{ github.event.inputs.environment || 'qa' }}
+          QA_BASE_URL=${{ secrets.QA_BASE_URL }}
+          QA_EMAIL=${{ secrets.QA_EMAIL }}
+          QA_PASSWORD=${{ secrets.QA_PASSWORD }}
+          BROWSER=${{ matrix.browser }}
+          HEADLESS=true
+          EOF
+        # NOTE: Real credentials must be stored as encrypted GitHub
+        # Actions secrets (Settings -> Secrets and variables -> Actions).
+        # They are never committed to the repository.
+
+      - name: Run Cucumber tests
+        run: npm test
+        continue-on-error: true
+        id: run-tests
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          npm install -g allure-commandline --save-dev
+          npx allure generate allure-results --clean -o reports/allure-report
+
+      - name: Generate HTML report
+        if: always()
+        run: npm run report:html:generate
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.browser }}
+          path: |
+            reports/
+            screenshots/
+          retention-days: 14
+
+      - name: Fail job if tests failed
+        if: steps.run-tests.outcome == 'failure'
+        run: exit 1
